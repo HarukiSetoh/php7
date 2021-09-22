@@ -1,0 +1,30 @@
+# FROM php:7.3-apache
+
+# ENV http_proxy http://192.168.253.1:8080
+# ENV https_proxy http://192.168.253.1:8080
+
+# RUN export uid=1000 gid=1000 && \
+# 	echo "user:x:${uid}:${gid}:user,,,::/bin/bash" >> /etc/passwd && \
+# 	echo "user:x:${uid}:" >> /etc/group && \
+# 	export COMPOSER_HOME=~/.composer
+
+# RUN a2enmod rewrite
+# RUN apt-get update && \
+# 	apt-get install -y libicu-dev git unzip zlib1g-dev && \
+# 	docker-php-ext-install pdo_mysql mysqli mbstring intl zip
+
+FROM php:7.3-apache
+
+# ENV http_proxy http://192.168.253.1:8080
+# ENV https_proxy http://192.168.253.1:8080
+
+RUN a2enmod rewrite
+RUN apt-get update \
+  && apt-get install -y libfreetype6-dev libjpeg62-turbo-dev libpng-dev libjpeg-dev fontconfig g++ libicu-dev libzip-dev \
+  && docker-php-ext-install pdo_mysql mysqli mbstring iconv zip \
+  && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+  && docker-php-ext-install -j$(nproc) gd \
+  && docker-php-ext-install intl \
+  && apt-get purge --auto-remove -y g++
+
+RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
